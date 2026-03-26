@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>BJJ Técnico</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#0d0d0f;--bg2:#141417;--bg3:#1c1c20;--bg4:#242428;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --ink:#f0ede8;--ink2:#9a9790;--ink3:#5a5855;
+  --red:#e8192c;--red2:#ff3347;--red-dim:rgba(232,25,44,0.15);
+  --visto-bg:rgba(90,88,85,0.2);--visto-c:#7a7772;--visto-dot:#5a5855;
+  --trein-bg:rgba(234,179,8,0.12);--trein-c:#ca9a00;--trein-dot:#ca9a00;
+  --dom-bg:rgba(34,197,94,0.12);--dom-c:#16a34a;--dom-dot:#16a34a;
+  --auto-bg:rgba(232,25,44,0.12);--auto-c:#e8192c;--auto-dot:#e8192c;
+}
+html,body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;font-size:15px;overscroll-behavior:none;}
+
+/* SCREENS */
+.screen{display:none;flex-direction:column;height:100vh;overflow:hidden;}
+.screen.active{display:flex;}
+
+/* TOPBAR */
+.topbar{background:var(--bg);border-bottom:1px solid var(--border);padding:13px 20px 11px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.logo{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700;letter-spacing:1px;}
+.logo em{color:var(--red);font-style:normal;}
+.belt-pill{display:flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:4px 10px 4px 6px;cursor:pointer;}
+.belt-dot{width:10px;height:10px;border-radius:50%;}
+.belt-name{font-size:12px;font-weight:600;color:var(--ink2);}
+
+/* PROG */
+.prog-strip{height:2px;background:var(--bg3);flex-shrink:0;}
+.prog-fill{height:100%;background:var(--red);transition:width .6s;}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);flex-shrink:0;}
+.stat-cell{background:var(--bg2);padding:10px 6px;text-align:center;}
+.stat-val{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;line-height:1;}
+.stat-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);margin-top:1px;}
+.sv-v{color:var(--visto-dot);}.sv-t{color:var(--trein-dot);}.sv-d{color:var(--dom-dot);}.sv-a{color:var(--auto-dot);}
+
+/* SEARCH BAR */
+.search-wrap{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;flex-shrink:0;}
+.search-input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:8px 12px 8px 34px;color:var(--ink);font-size:14px;font-family:'Barlow',sans-serif;outline:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%235a5855' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:10px center;}
+.search-input::placeholder{color:var(--ink3);}
+
+/* FILTER BAR */
+.filter-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 16px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex-shrink:0;}
+.filter-bar::-webkit-scrollbar{display:none;}
+.chip{flex-shrink:0;padding:4px 11px;border-radius:20px;font-size:11px;font-weight:600;font-family:'Barlow',sans-serif;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--ink3);transition:all .15s;white-space:nowrap;}
+.chip.on{background:var(--red);color:#fff;border-color:var(--red);}
+.chip-sep{width:1px;height:16px;background:var(--border2);flex-shrink:0;align-self:center;}
+
+/* SCROLL */
+.scroll-area{flex:1;overflow-y:auto;padding:14px 16px 90px;-webkit-overflow-scrolling:touch;}
+
+/* CATEGORY */
+.cat-block{margin-bottom:20px;}
+.cat-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;cursor:pointer;padding:2px 0;}
+.cat-left{display:flex;align-items:center;gap:7px;}
+.cat-emoji{font-size:15px;}
+.cat-name{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--ink);}
+.cat-right{display:flex;align-items:center;gap:7px;}
+.cat-bar-wrap{width:44px;height:3px;background:var(--bg4);border-radius:2px;overflow:hidden;}
+.cat-bar{height:100%;background:var(--red);border-radius:2px;transition:width .4s;}
+.cat-frac{font-size:10px;color:var(--ink3);font-weight:600;min-width:26px;text-align:right;}
+.cat-chev{font-size:10px;color:var(--ink3);transition:transform .2s;}
+.cat-body{display:block;}
+.cat-body.closed{display:none;}
+
+/* SUB */
+.sub-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);padding:0 2px;margin-bottom:5px;margin-top:12px;}
+.sub-lbl:first-child{margin-top:0;}
+
+/* MOVE CARD */
+.mcard{background:var(--bg2);border:1px solid var(--border);border-radius:9px;margin-bottom:5px;overflow:hidden;transition:border-color .15s;}
+.mcard:hover{border-color:var(--border2);}
+.mcard.hidden{display:none;}
+.mcard-main{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;}
+.mlvl-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;border:1.5px solid var(--ink3);background:transparent;transition:all .2s;}
+.mlvl-dot.visto{background:var(--visto-dot);border-color:var(--visto-dot);}
+.mlvl-dot.treinando{background:var(--trein-dot);border-color:var(--trein-dot);}
+.mlvl-dot.dominando{background:var(--dom-dot);border-color:var(--dom-dot);}
+.mlvl-dot.automatico{background:var(--auto-dot);border-color:var(--auto-dot);}
+.minfo{flex:1;min-width:0;}
+.mname{font-size:13px;font-weight:500;color:var(--ink);line-height:1.2;}
+.mdesc{font-size:11px;color:var(--ink3);margin-top:1px;}
+.mtags{display:flex;gap:3px;margin-top:4px;flex-wrap:wrap;}
+.mtag{font-size:9px;font-weight:700;padding:2px 5px;border-radius:5px;text-transform:uppercase;letter-spacing:.03em;}
+.mt-branca{background:rgba(255,255,255,0.07);color:#888;}
+.mt-azul{background:rgba(59,130,246,0.15);color:#60a5fa;}
+.mt-roxa{background:rgba(168,85,247,0.15);color:#c084fc;}
+.mt-marrom{background:rgba(180,120,60,0.15);color:#d4944a;}
+.mt-gi{background:rgba(34,197,94,0.12);color:#4ade80;}
+.mt-nogi{background:rgba(234,179,8,0.12);color:#facc15;}
+.mexpand{width:26px;height:26px;border-radius:5px;border:1px solid var(--border2);background:var(--bg3);color:var(--ink3);font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+
+/* LEVEL PANEL */
+.mlvl-panel{display:none;border-top:1px solid var(--border);padding:8px 12px;background:var(--bg3);flex-direction:column;gap:6px;}
+.mlvl-panel.open{display:flex;}
+.lvl-row{display:flex;gap:5px;}
+.lvl-btn{flex:1;padding:6px 4px;border-radius:7px;border:1px solid var(--border2);background:transparent;color:var(--ink2);font-size:10px;font-weight:600;font-family:'Barlow',sans-serif;cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px;transition:all .15s;}
+.lvl-btn .ldot{width:7px;height:7px;border-radius:50%;}
+.lvl-btn.sel-visto{background:var(--visto-bg);border-color:var(--visto-dot);color:var(--visto-c);}
+.lvl-btn.sel-treinando{background:var(--trein-bg);border-color:var(--trein-dot);color:var(--trein-c);}
+.lvl-btn.sel-dominando{background:var(--dom-bg);border-color:var(--dom-dot);color:var(--dom-c);}
+.lvl-btn.sel-automatico{background:var(--auto-bg);border-color:var(--auto-dot);color:var(--auto-c);}
+.lvl-clr{padding:6px 10px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--ink3);font-size:11px;font-family:'Barlow',sans-serif;cursor:pointer;}
+.lvl-clr:hover{color:var(--red);border-color:var(--red);}
+
+/* VIDEO ROW */
+.vid-row{display:flex;gap:6px;padding:0 12px 8px;}
+.vid-input{flex:1;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;padding:6px 10px;color:var(--ink);font-size:12px;font-family:'Barlow',sans-serif;outline:none;}
+.vid-input::placeholder{color:var(--ink3);}
+.vid-save{padding:6px 12px;border-radius:6px;background:var(--red-dim);border:1px solid var(--red);color:var(--red);font-size:11px;font-weight:600;font-family:'Barlow',sans-serif;cursor:pointer;white-space:nowrap;}
+.vid-link{display:flex;align-items:center;gap:6px;padding:0 12px 8px;font-size:12px;}
+.vid-link a{color:var(--red);text-decoration:none;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.vid-link-clr{color:var(--ink3);cursor:pointer;font-size:11px;padding:2px 6px;border:1px solid var(--border);border-radius:4px;}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);display:flex;z-index:100;}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 0 14px;cursor:pointer;border:none;background:none;font-family:'Barlow',sans-serif;color:var(--ink3);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;transition:color .15s;}
+.nav-btn.on{color:var(--red);}
+.nav-ic{font-size:17px;}
+
+/* ── STATS SCREEN ── */
+.stats-hero{background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 20px;}
+.stats-hero-title{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;}
+.stats-hero-sub{font-size:13px;color:var(--ink3);margin-top:2px;}
+
+.big-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
+.big-stat{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;}
+.big-stat-val{font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:700;line-height:1;color:var(--red);}
+.big-stat-lbl{font-size:12px;color:var(--ink3);margin-top:3px;}
+
+.sec-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);margin-bottom:8px;}
+
+.prog-cat-row{margin-bottom:8px;}
+.prog-cat-name{display:flex;justify-content:space-between;font-size:13px;font-weight:500;margin-bottom:4px;}
+.prog-cat-name span:last-child{font-size:11px;color:var(--ink3);}
+.prog-bar-outer{height:5px;background:var(--bg4);border-radius:3px;overflow:hidden;}
+.prog-bar-inner{height:100%;background:var(--red);border-radius:3px;transition:width .5s;}
+
+.lvl-dist{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:16px;}
+.lvl-dist-cell{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 6px;text-align:center;}
+.lvl-dist-val{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;line-height:1;}
+.lvl-dist-lbl{font-size:9px;color:var(--ink3);margin-top:2px;text-transform:uppercase;letter-spacing:.04em;}
+
+/* ── REVIEW SCREEN ── */
+.rev-hero{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 20px;flex-shrink:0;}
+.rev-title{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700;}
+.rev-sub{font-size:12px;color:var(--ink3);margin-top:2px;}
+.rev-date{font-size:11px;color:var(--ink3);margin-top:6px;padding-top:6px;border-top:1px solid var(--border);}
+
+.rev-sec{margin-bottom:20px;}
+.rev-sec-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);margin-bottom:7px;}
+.rev-card{background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:11px 13px;margin-bottom:5px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color .15s;}
+.rev-card:hover{border-color:var(--border2);}
+.rev-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.rev-info{flex:1;}
+.rev-name{font-size:13px;font-weight:500;color:var(--ink);}
+.rev-meta{font-size:11px;color:var(--ink3);margin-top:1px;}
+.rev-badge{font-size:9px;font-weight:700;padding:3px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;}
+.rb-visto{background:var(--visto-bg);color:var(--visto-c);}
+.rb-treinando{background:var(--trein-bg);color:var(--trein-c);}
+.rb-dominando{background:var(--dom-bg);color:var(--dom-c);}
+.rb-automatico{background:var(--auto-bg);color:var(--auto-c);}
+
+.empty-box{background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:28px;text-align:center;color:var(--ink3);font-size:13px;}
+.empty-box .eic{font-size:28px;margin-bottom:8px;}
+
+/* ── REGISTER SCREEN ── */
+.reg-hero{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 20px;flex-shrink:0;}
+.reg-title-row{display:flex;align-items:center;justify-content:space-between;}
+.reg-title{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;}
+.reg-date-badge{background:var(--red-dim);border:1px solid var(--red);border-radius:5px;padding:3px 9px;font-size:11px;font-weight:600;color:var(--red);}
+.reg-sub{font-size:12px;color:var(--ink3);margin-top:3px;}
+
+.reg-cat-head{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 13px;display:flex;align-items:center;gap:7px;cursor:pointer;margin-bottom:4px;}
+.reg-cat-name{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--ink);flex:1;}
+.reg-cat-count{font-size:11px;color:var(--ink3);}
+.reg-moves{display:none;margin-bottom:6px;}
+.reg-moves.open{display:block;}
+.reg-move{background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:9px 12px;margin-bottom:3px;display:flex;align-items:center;gap:9px;cursor:pointer;transition:border-color .15s;}
+.reg-move:hover{border-color:var(--border2);}
+.reg-move-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;border:1.5px solid var(--ink3);}
+.reg-move-dot.visto{background:var(--visto-dot);border-color:var(--visto-dot);}
+.reg-move-dot.treinando{background:var(--trein-dot);border-color:var(--trein-dot);}
+.reg-move-dot.dominando{background:var(--dom-dot);border-color:var(--dom-dot);}
+.reg-move-dot.automatico{background:var(--auto-dot);border-color:var(--auto-dot);}
+.reg-move-name{flex:1;font-size:13px;font-weight:500;color:var(--ink);}
+.reg-move-lvl{font-size:10px;font-weight:600;color:var(--ink3);}
+
+/* HISTORY */
+.hist-entry{background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:12px 14px;margin-bottom:8px;}
+.hist-date{font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;}
+.hist-moves{display:flex;flex-wrap:wrap;gap:4px;}
+.hist-tag{font-size:11px;padding:3px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--ink2);}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;align-items:flex-end;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:var(--bg2);border-top:1px solid var(--border2);border-radius:20px 20px 0 0;padding:20px;width:100%;}
+.modal-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;margin-bottom:14px;}
+.belt-options{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
+.belt-opt{background:var(--bg3);border:1px solid var(--border2);border-radius:9px;padding:10px 6px;text-align:center;cursor:pointer;transition:all .15s;}
+.belt-opt.sel{border-color:var(--red);background:var(--red-dim);}
+.belt-opt .bdot{width:14px;height:14px;border-radius:50%;margin:0 auto 5px;}
+.belt-opt .bname{font-size:11px;font-weight:600;color:var(--ink2);}
+.belt-opt.sel .bname{color:var(--ink);}
+.modal-close{display:block;width:100%;margin-top:10px;padding:11px;background:var(--bg4);border:1px solid var(--border2);border-radius:9px;color:var(--ink2);font-size:13px;font-weight:600;font-family:'Barlow',sans-serif;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<!-- ── LIBRARY ── -->
+<div class="screen active" id="scr-library">
+  <div class="topbar">
+    <div class="logo">BJJ <em>Técnico</em></div>
+    <div class="belt-pill" onclick="openProfile()">
+      <div class="belt-dot" id="hbelt-dot"></div>
+      <div class="belt-name" id="hbelt-name">Faixa</div>
+    </div>
+  </div>
+  <div class="prog-strip"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+  <div class="stats-row">
+    <div class="stat-cell"><div class="stat-val sv-v" id="sv-v">0</div><div class="stat-lbl">Introduzido</div></div>
+    <div class="stat-cell"><div class="stat-val sv-t" id="sv-t">0</div><div class="stat-lbl">Desenvolvendo</div></div>
+    <div class="stat-cell"><div class="stat-val sv-d" id="sv-d">0</div><div class="stat-lbl">Sólido</div></div>
+    <div class="stat-cell"><div class="stat-val sv-a" id="sv-a">0</div><div class="stat-lbl">Automático</div></div>
+  </div>
+  <div class="search-wrap">
+    <input class="search-input" id="search-inp" placeholder="Buscar técnica..." oninput="doSearch(this.value)">
+  </div>
+  <div class="filter-bar" id="filter-bar">
+    <button class="chip on" data-st="all">Todas</button>
+    <button class="chip" data-st="active">Com status</button>
+    <button class="chip" data-st="none">Sem status</button>
+    <div class="chip-sep"></div>
+    <button class="chip on" data-fx="faixa_branca">Branca</button>
+    <button class="chip on" data-fx="faixa_azul">Azul</button>
+    <button class="chip on" data-fx="faixa_roxa">Roxa</button>
+    <button class="chip on" data-fx="faixa_marrom">Marrom</button>
+    <div class="chip-sep"></div>
+    <button class="chip on" data-md="gi">Gi</button>
+    <button class="chip on" data-md="nogi">No-Gi</button>
+  </div>
+  <div class="scroll-area" id="lib-list"></div>
+</div>
+
+<!-- ── REVIEW ── -->
+<div class="screen" id="scr-review">
+  <div class="topbar"><div class="logo">BJJ <em>Técnico</em></div></div>
+  <div class="rev-hero">
+    <div class="rev-title">Revisar</div>
+    <div class="rev-sub">Técnicas para focar no próximo treino</div>
+    <div class="rev-date" id="rev-date"></div>
+  </div>
+  <div class="scroll-area" id="rev-list"></div>
+</div>
+
+<!-- ── REGISTER ── -->
+<div class="screen" id="scr-register">
+  <div class="topbar"><div class="logo">BJJ <em>Técnico</em></div></div>
+  <div class="reg-hero">
+    <div class="reg-title-row">
+      <div class="reg-title">Registrar Aula</div>
+      <div class="reg-date-badge" id="reg-date-badge"></div>
+    </div>
+    <div class="reg-sub">Toque para ciclar o nível de domínio</div>
+  </div>
+  <div class="scroll-area" id="reg-list"></div>
+</div>
+
+<!-- ── STATS ── -->
+<div class="screen" id="scr-stats">
+  <div class="topbar"><div class="logo">BJJ <em>Técnico</em></div></div>
+  <div class="scroll-area" id="stats-content"></div>
+</div>
+
+<!-- ── BOTTOM NAV ── -->
+<nav class="bottom-nav">
+  <button class="nav-btn on" onclick="goTo('library')"><span class="nav-ic">📚</span>Biblioteca</button>
+  <button class="nav-btn" onclick="goTo('review')"><span class="nav-ic">🔄</span>Revisar</button>
+  <button class="nav-btn" onclick="goTo('register')"><span class="nav-ic">✏️</span>Registrar</button>
+  <button class="nav-btn" onclick="goTo('stats')"><span class="nav-ic">📊</span>Progresso</button>
+</nav>
+
+<!-- ── PROFILE MODAL ── -->
+<div class="modal-overlay" id="profile-modal" onclick="if(event.target===this)closeProfile()">
+  <div class="modal-box">
+    <div class="modal-title">Minha Faixa</div>
+    <div class="belt-options" id="belt-options"></div>
+    <button class="modal-close" onclick="closeProfile()">Fechar</button>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════
+// CURRICULUM DATA
+// ════════════════════════════════
+const C = {"categorias":[{"id":"takedowns","nome":"Técnicas de Pé","emoji":"🥋","subcategorias":[{"id":"td_judo","nome":"Quedas de Judô","tecnicas":[{"id":1,"nome":"Osoto Gari","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Grande segada externa"},{"id":2,"nome":"Ouchi Gari","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Grande segada interna"},{"id":3,"nome":"Kouchi Gari","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Pequena segada interna"},{"id":4,"nome":"Seoi Nage","nivel":"faixa_azul","gi":true,"nogi":false,"descricao":"Projeção pelo ombro"},{"id":5,"nome":"Ippon Seoi Nage","nivel":"faixa_azul","gi":true,"nogi":false,"descricao":"Projeção pelo ombro com um braço"},{"id":6,"nome":"Tai Otoshi","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Queda do corpo"},{"id":7,"nome":"Sumi Gaeshi","nivel":"faixa_roxa","gi":true,"nogi":true,"descricao":"Sacrifício de canto"},{"id":8,"nome":"Tomoe Nage","nivel":"faixa_roxa","gi":true,"nogi":true,"descricao":"Projeção circular"}]},{"id":"td_wrest","nome":"Quedas de Wrestling","tecnicas":[{"id":9,"nome":"Double leg takedown","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Entrada nas duas pernas"},{"id":10,"nome":"Single leg takedown","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Entrada em uma perna"},{"id":11,"nome":"High crotch","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Entrada alta na virilha"},{"id":12,"nome":"Arm drag para costas","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Puxada do braço para tirar as costas"},{"id":13,"nome":"Ankle pick","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Captura do tornozelo"},{"id":14,"nome":"Duck under","nivel":"faixa_roxa","gi":true,"nogi":true,"descricao":"Passagem por baixo do braço"},{"id":15,"nome":"Blast double","nivel":"faixa_roxa","gi":false,"nogi":true,"descricao":"Double leg explosivo"}]},{"id":"td_clinch","nome":"Clinch","tecnicas":[{"id":16,"nome":"Entrada body lock","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Controle de tronco"},{"id":17,"nome":"Suplex do body lock","nivel":"faixa_roxa","gi":true,"nogi":true,"descricao":"Projeção de tronco"},{"id":18,"nome":"Tomada de costas em pé","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Back take do clinch"}]}]},{"id":"gf","nome":"Guarda Fechada","emoji":"🔒","subcategorias":[{"id":"gf_ctrl","nome":"Controle e Postura","tecnicas":[{"id":19,"nome":"Quebra de postura básica","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Fundamento do jogo de guarda"},{"id":20,"nome":"Controle de manga e gola","nivel":"faixa_branca","gi":true,"nogi":false,"descricao":"Grips básicos da guarda fechada"},{"id":21,"nome":"Hip bump setup","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Criação de ângulo para ataques"}]},{"id":"gf_fin","nome":"Finalizações","tecnicas":[{"id":22,"nome":"Kimura da guarda fechada","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Chave de ombro clássica"},{"id":23,"nome":"Americana da guarda fechada","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Chave de ombro invertida"},{"id":24,"nome":"Armlock da guarda (juji-gatame)","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Chave de braço clássica"},{"id":25,"nome":"Triângulo clássico","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Estrangulamento com as pernas"},{"id":26,"nome":"Omoplata","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Chave de ombro com as pernas"},{"id":27,"nome":"Gogoplata","nivel":"faixa_marrom","gi":true,"nogi":true,"descricao":"Estrangulamento com a tíbia"},{"id":28,"nome":"Cross collar choke","nivel":"faixa_branca","gi":true,"nogi":false,"descricao":"Estrangulamento cruzado na gola"},{"id":29,"nome":"Guillotine da guarda","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Guilhotina na guarda"}]},{"id":"gf_rasp","nome":"Raspagens","tecnicas":[{"id":30,"nome":"Hip bump sweep","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Raspagem com empurrão de quadril"},{"id":31,"nome":"Scissor sweep (tesoura)","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Raspagem em tesoura"},{"id":32,"nome":"Pendulum sweep","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Raspagem pendular"},{"id":33,"nome":"Flower sweep","nivel":"faixa_azul","gi":true,"nogi":false,"descricao":"Raspagem da manga e pé"},{"id":34,"nome":"Sit-up sweep","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Raspagem sentando"}]}]},{"id":"pg","nome":"Passagem de Guarda","emoji":"🔀","subcategorias":[{"id":"pg_fech","nome":"Guarda Fechada","tecnicas":[{"id":35,"nome":"Abertura de guarda em pé","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Técnica fundamental de abertura"},{"id":36,"nome":"Toreando (bullfighter pass)","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Passagem em toureio"},{"id":37,"nome":"Knee slice","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Passagem com joelho cortando"},{"id":38,"nome":"Double under pass","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Passagem por baixo das duas pernas"},{"id":39,"nome":"Leg drag pass","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Arrastão de perna"}]},{"id":"pg_meia","nome":"Meia Guarda","tecnicas":[{"id":40,"nome":"Crossface e underhook","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Fundamento da passagem de meia guarda"},{"id":41,"nome":"Leg weave pass","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Passagem trançando a perna"},{"id":42,"nome":"Smash pass","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Passagem com pressão"},{"id":43,"nome":"Cruzeta da meia guarda","nivel":"faixa_roxa","gi":true,"nogi":false,"descricao":"Passagem com grip de gola"}]},{"id":"pg_ab","nome":"Guarda Aberta","tecnicas":[{"id":44,"nome":"Toreando na guarda aberta","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Toureio adaptado"},{"id":45,"nome":"X-pass","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Passagem em X"},{"id":46,"nome":"Stack pass","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Passagem empilhando"},{"id":47,"nome":"Over-under pass","nivel":"faixa_roxa","gi":true,"nogi":true,"descricao":"Passagem por cima e por baixo"},{"id":48,"nome":"Headquarters position","nivel":"faixa_roxa","gi":true,"nogi":true,"descricao":"Posição base para múltiplas passagens"}]}]},{"id":"mg","nome":"Meia Guarda","emoji":"↔️","subcategorias":[{"id":"mg_jogo","nome":"Jogo de Baixo","tecnicas":[{"id":49,"nome":"Old school sweep","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Raspagem clássica com underhook"},{"id":50,"nome":"Tomada de costas da meia guarda","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Back take com underhook"},{"id":51,"nome":"Deep half guard sweep","nivel":"faixa_roxa","gi":true,"nogi":true,"descricao":"Raspagem da meia guarda profunda"},{"id":52,"nome":"Waiter sweep","nivel":"faixa_roxa","gi":true,"nogi":true,"descricao":"Raspagem do garçom"},{"id":53,"nome":"Kimura trap da meia guarda","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Sistema de kimura da meia guarda"}]}]},{"id":"ga","nome":"Guarda Aberta","emoji":"🕷️","subcategorias":[{"id":"ga_spider","nome":"Spider Guard","tecnicas":[{"id":54,"nome":"Spider guard básico","nivel":"faixa_azul","gi":true,"nogi":false,"descricao":"Controle com pés nos braços"},{"id":55,"nome":"Spider guard sweep","nivel":"faixa_azul","gi":true,"nogi":false,"descricao":"Raspagem básica da spider"},{"id":56,"nome":"Triangle from spider","nivel":"faixa_roxa","gi":true,"nogi":false,"descricao":"Triângulo da spider guard"}]},{"id":"ga_lasso","nome":"Lasso Guard","tecnicas":[{"id":57,"nome":"Lasso guard básico","nivel":"faixa_azul","gi":true,"nogi":false,"descricao":"Controle enrolando o braço"},{"id":58,"nome":"Lasso sweep","nivel":"faixa_azul","gi":true,"nogi":false,"descricao":"Raspagem do lasso"},{"id":59,"nome":"Omoplata do lasso","nivel":"faixa_roxa","gi":true,"nogi":false,"descricao":"Omoplata a partir do lasso"}]},{"id":"ga_dlr","nome":"De La Riva","tecnicas":[{"id":60,"nome":"De La Riva básico","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Gancho externo na perna"},{"id":61,"nome":"DLR sweep básico","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Raspagem fundamental da DLR"},{"id":62,"nome":"Berimbolo","nivel":"faixa_marrom","gi":true,"nogi":false,"descricao":"Inversão para tomar as costas"},{"id":63,"nome":"Back take da DLR","nivel":"faixa_roxa","gi":true,"nogi":true,"descricao":"Tomada de costas da DLR"}]},{"id":"ga_x","nome":"X-Guard","tecnicas":[{"id":64,"nome":"X-guard básico","nivel":"faixa_roxa","gi":true,"nogi":true,"descricao":"Controle sob o oponente"},{"id":65,"nome":"X-guard sweep","nivel":"faixa_roxa","gi":true,"nogi":true,"descricao":"Raspagem levantando o oponente"},{"id":66,"nome":"Single leg X (SLX)","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Versão com uma perna do X-guard"}]},{"id":"ga_5050","nome":"50/50","tecnicas":[{"id":67,"nome":"50/50 básico","nivel":"faixa_roxa","gi":true,"nogi":true,"descricao":"Entrelaçamento de pernas"},{"id":68,"nome":"Heel hook do 50/50","nivel":"faixa_marrom","gi":false,"nogi":true,"descricao":"Heel hook do 50/50"},{"id":69,"nome":"Sweep do 50/50","nivel":"faixa_roxa","gi":true,"nogi":true,"descricao":"Raspagem do 50/50"}]}]},{"id":"rasp","nome":"Raspagens Gerais","emoji":"↕️","subcategorias":[{"id":"rasp_f","nome":"Fundamentais","tecnicas":[{"id":70,"nome":"Elevator sweep","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Raspagem do elevador"},{"id":71,"nome":"Tripod sweep","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Raspagem do tripé"},{"id":72,"nome":"Sickle sweep","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Raspagem da foice"},{"id":73,"nome":"Balloon sweep","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Raspagem do balão"}]}]},{"id":"mont","nome":"Montada","emoji":"👑","subcategorias":[{"id":"mont_c","nome":"Controle","tecnicas":[{"id":74,"nome":"Montada básica (low mount)","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Posição de montada fundamental"},{"id":75,"nome":"High mount","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Montada alta sobre o tórax"},{"id":76,"nome":"S-mount","nivel":"faixa_roxa","gi":true,"nogi":true,"descricao":"Montada em S para ataques"},{"id":77,"nome":"Defesa do upa (bridge and roll)","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Defesa fundamental da montada"},{"id":78,"nome":"Elbow-knee escape","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Escape cotovelo-joelho"}]},{"id":"mont_f","nome":"Finalizações","tecnicas":[{"id":79,"nome":"Americana da montada","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Chave de ombro pela montada"},{"id":80,"nome":"Armlock da montada","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Chave de braço da montada"},{"id":81,"nome":"Cross collar choke da montada","nivel":"faixa_branca","gi":true,"nogi":false,"descricao":"Estrangulamento de gola"},{"id":82,"nome":"Ezekiel choke","nivel":"faixa_azul","gi":true,"nogi":false,"descricao":"Estrangulamento pela manga"},{"id":83,"nome":"Triângulo da montada","nivel":"faixa_roxa","gi":true,"nogi":true,"descricao":"Triângulo da montada"},{"id":84,"nome":"Arm triangle (kata gatame)","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Triângulo de braço"}]}]},{"id":"sc","nome":"Side Control","emoji":"⚖️","subcategorias":[{"id":"sc_c","nome":"Controle","tecnicas":[{"id":85,"nome":"Side control básico","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Posição fundamental de lado"},{"id":86,"nome":"Transição para montada","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Subir para a montada"},{"id":87,"nome":"Transição para north-south","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Posição norte-sul"},{"id":88,"nome":"Knee on belly","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Joelho na barriga"},{"id":89,"nome":"Escape elbow push","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Escape com cotovelo"},{"id":90,"nome":"Escape running man","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Escape girando para a barriga"}]},{"id":"sc_f","nome":"Finalizações","tecnicas":[{"id":91,"nome":"Americana do side control","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Chave de ombro clássica"},{"id":92,"nome":"Kimura do side control","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Chave de ombro invertida"},{"id":93,"nome":"Armlock do side control","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Chave de braço do lado"},{"id":94,"nome":"North-south choke","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Estrangulamento norte-sul"},{"id":95,"nome":"Arm triangle do side control","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Triângulo de braço"},{"id":96,"nome":"Paper cutter choke","nivel":"faixa_azul","gi":true,"nogi":false,"descricao":"Estrangulamento com a gola"}]}]},{"id":"costas","nome":"Costas","emoji":"🎯","subcategorias":[{"id":"cos_tom","nome":"Tomada de Costas","tecnicas":[{"id":97,"nome":"Back take do turtle","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Tirar as costas da tartaruga"},{"id":98,"nome":"Back take do side control","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Tirar as costas do lado"},{"id":99,"nome":"Seat belt control","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Controle fundamental das costas"},{"id":100,"nome":"Body triangle","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Triângulo de corpo nas costas"}]},{"id":"cos_f","nome":"Finalizações","tecnicas":[{"id":101,"nome":"Rear naked choke (mata-leão)","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Estrangulamento das costas"},{"id":102,"nome":"Bow and arrow choke","nivel":"faixa_azul","gi":true,"nogi":false,"descricao":"Estrangulamento arco e flecha"},{"id":103,"nome":"Armbar das costas","nivel":"faixa_roxa","gi":true,"nogi":true,"descricao":"Chave de braço das costas"},{"id":104,"nome":"Collar choke das costas","nivel":"faixa_azul","gi":true,"nogi":false,"descricao":"Estrangulamento de gola pelas costas"}]},{"id":"cos_esc","nome":"Escape","tecnicas":[{"id":105,"nome":"Escape básico (roll to guard)","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Rolar para a guarda"},{"id":106,"nome":"Shoulder escape","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Escape pelo ombro"}]}]},{"id":"ll","nome":"Leg Locks","emoji":"🦵","subcategorias":[{"id":"ll_f","nome":"Fundamentais","tecnicas":[{"id":107,"nome":"Straight ankle lock","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Chave de tornozelo reta"},{"id":108,"nome":"Kneebar","nivel":"faixa_roxa","gi":true,"nogi":true,"descricao":"Chave de joelho"},{"id":109,"nome":"Calf slicer","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Slicador de panturrilha"},{"id":110,"nome":"Toe hold","nivel":"faixa_roxa","gi":true,"nogi":true,"descricao":"Chave de dedos do pé"}]},{"id":"ll_hh","nome":"Heel Hooks","tecnicas":[{"id":111,"nome":"Outside heel hook","nivel":"faixa_marrom","gi":false,"nogi":true,"descricao":"Heel hook externo"},{"id":112,"nome":"Inside heel hook","nivel":"faixa_marrom","gi":false,"nogi":true,"descricao":"Heel hook interno — alto risco"},{"id":113,"nome":"Ashi garami","nivel":"faixa_roxa","gi":true,"nogi":true,"descricao":"Controle de perna fundamental"},{"id":114,"nome":"Outside ashi","nivel":"faixa_roxa","gi":true,"nogi":true,"descricao":"Controle externo de perna"}]}]},{"id":"turtle","nome":"Tartaruga","emoji":"🐢","subcategorias":[{"id":"tur_a","nome":"Ataques","tecnicas":[{"id":115,"nome":"Darce choke","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Estrangulamento no turtle"},{"id":116,"nome":"Anaconda choke","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Variação do darce"},{"id":117,"nome":"Clock choke","nivel":"faixa_azul","gi":true,"nogi":false,"descricao":"Estrangulamento de gola no turtle"},{"id":118,"nome":"Back take do turtle","nivel":"faixa_branca","gi":true,"nogi":true,"descricao":"Back take fundamental"}]}]},{"id":"guill","nome":"Guilhotina","emoji":"⚔️","subcategorias":[{"id":"guill_t","nome":"Tipos","tecnicas":[{"id":119,"nome":"High elbow guillotine","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Guilhotina com cotovelo alto"},{"id":120,"nome":"Arm-in guillotine","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Guilhotina com braço dentro"},{"id":121,"nome":"Guillotine da guarda fechada","nivel":"faixa_azul","gi":true,"nogi":true,"descricao":"Guilhotina finalizada na guarda"},{"id":122,"nome":"Marcelotine","nivel":"faixa_roxa","gi":true,"nogi":true,"descricao":"Variação do Marcelo Garcia"}]}]}]};
+
+// ════════════════════════════════
+// STATE
+// ════════════════════════════════
+const LEVELS = ['visto','treinando','dominando','automatico'];
+const LBL = {visto:'Introduzido',treinando:'Em Desenvolvimento',dominando:'Sólido',automatico:'Automático'};
+const LDOT = {visto:'var(--visto-dot)',treinando:'var(--trein-dot)',dominando:'var(--dom-dot)',automatico:'var(--auto-dot)'};
+const BELTS = [{id:'branca',label:'Branca',color:'#e8e8e8'},{id:'azul',label:'Azul',color:'#2563eb'},{id:'roxa',label:'Roxa',color:'#7c3aed'},{id:'marrom',label:'Marrom',color:'#92400e'},{id:'preta',label:'Preta',color:'#1a1a1a'}];
+
+let S = JSON.parse(localStorage.getItem('bjj_v3')||'{}');
+if(!S.levels) S.levels={};
+if(!S.belt) S.belt='branca';
+if(!S.videos) S.videos={};
+if(!S.history) S.history={}; // { 'YYYY-MM-DD': {id: level} }
+if(!S.openCats) S.openCats={};
+function save(){localStorage.setItem('bjj_v3',JSON.stringify(S));}
+
+let filterSt='all', filterFx=new Set(['faixa_branca','faixa_azul','faixa_roxa','faixa_marrom']), filterMd=new Set(['gi','nogi']);
+let openPanels=new Set(), searchQ='';
+
+function allMoves(){return C.categorias.flatMap(c=>c.subcategorias.flatMap(s=>s.tecnicas.map(t=>({...t,catId:c.id,catNome:c.nome,catEmoji:c.emoji}))));}
+function fxLbl(f){return{faixa_branca:'Branca',faixa_azul:'Azul',faixa_roxa:'Roxa',faixa_marrom:'Marrom'}[f]||f;}
+function fxCls(f){return{faixa_branca:'mt-branca',faixa_azul:'mt-azul',faixa_roxa:'mt-roxa',faixa_marrom:'mt-marrom'}[f]||'mt-branca';}
+function todayStr(){return new Date().toISOString().slice(0,10);}
+function todayFmt(){return new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});}
+
+// ════════════════════════════════
+// STATS UPDATE
+// ════════════════════════════════
+function updateStats(){
+  const ct={visto:0,treinando:0,dominando:0,automatico:0};
+  Object.values(S.levels).forEach(l=>{if(ct[l]!==undefined)ct[l]++;});
+  document.getElementById('sv-v').textContent=ct.visto;
+  document.getElementById('sv-t').textContent=ct.treinando;
+  document.getElementById('sv-d').textContent=ct.dominando;
+  document.getElementById('sv-a').textContent=ct.automatico;
+  const total=allMoves().length, done=Object.keys(S.levels).length;
+  document.getElementById('prog-fill').style.width=(total?Math.round(done/total*100):0)+'%';
+}
+
+function updateCatBars(){
+  C.categorias.forEach(cat=>{
+    const all=cat.subcategorias.flatMap(s=>s.tecnicas);
+    const done=all.filter(t=>S.levels[t.id]).length;
+    const pct=all.length?Math.round(done/all.length*100):0;
+    const bar=document.getElementById('cbar-'+cat.id);
+    const frac=document.getElementById('cfrac-'+cat.id);
+    if(bar)bar.style.width=pct+'%';
+    if(frac)frac.textContent=done+'/'+all.length;
+  });
+}
+
+// ════════════════════════════════
+// BELT
+// ════════════════════════════════
+function updateBeltUI(){
+  const b=BELTS.find(x=>x.id===S.belt)||BELTS[0];
+  document.getElementById('hbelt-dot').style.background=b.color;
+  document.getElementById('hbelt-name').textContent=b.label;
+}
+function openProfile(){renderBeltOpts();document.getElementById('profile-modal').classList.add('open');}
+function closeProfile(){document.getElementById('profile-modal').classList.remove('open');}
+function renderBeltOpts(){
+  document.getElementById('belt-options').innerHTML=BELTS.map(b=>`
+    <div class="belt-opt ${S.belt===b.id?'sel':''}" onclick="setBelt('${b.id}')">
+      <div class="bdot" style="background:${b.color};${b.id==='branca'?'border:1px solid #555':''}"></div>
+      <div class="bname">${b.label}</div>
+    </div>`).join('');
+}
+function setBelt(id){S.belt=id;save();updateBeltUI();renderBeltOpts();}
+
+// ════════════════════════════════
+// LIBRARY
+// ════════════════════════════════
+function cardVisible(t){
+  if(searchQ){const q=searchQ.toLowerCase();if(!t.nome.toLowerCase().includes(q)&&!t.descricao.toLowerCase().includes(q))return false;}
+  const lv=S.levels[t.id];
+  if(filterSt==='active'&&!lv)return false;
+  if(filterSt==='none'&&lv)return false;
+  if(!filterFx.has(t.nivel))return false;
+  const mdOk=(filterMd.has('gi')&&t.gi)||(filterMd.has('nogi')&&t.nogi);
+  if(!mdOk)return false;
+  return true;
+}
+
+function renderLibrary(){
+  let html='';
+  C.categorias.forEach(cat=>{
+    const allT=cat.subcategorias.flatMap(s=>s.tecnicas);
+    const done=allT.filter(t=>S.levels[t.id]).length;
+    const pct=allT.length?Math.round(done/allT.length*100):0;
+    const closed=S.openCats[cat.id]===false;
+    html+=`<div class="cat-block">
+      <div class="cat-head" onclick="toggleCat('${cat.id}')">
+        <div class="cat-left"><span class="cat-emoji">${cat.emoji}</span><span class="cat-name">${cat.nome}</span></div>
+        <div class="cat-right">
+          <div class="cat-bar-wrap"><div class="cat-bar" id="cbar-${cat.id}" style="width:${pct}%"></div></div>
+          <span class="cat-frac" id="cfrac-${cat.id}">${done}/${allT.length}</span>
+          <span class="cat-chev">▾</span>
+        </div>
+      </div>
+      <div class="cat-body ${closed?'closed':''}" id="cbody-${cat.id}">`;
+    cat.subcategorias.forEach(sub=>{
+      html+=`<div class="sub-lbl">${sub.nome}</div>`;
+      sub.tecnicas.forEach(t=>{
+        const lv=S.levels[t.id]||null;
+        const vid=S.videos[t.id]||null;
+        const panOpen=openPanels.has(t.id);
+        html+=`<div class="mcard ${cardVisible(t)?'':'hidden'}" id="mc-${t.id}">
+          <div class="mcard-main" onclick="togglePanel(${t.id})">
+            <div class="mlvl-dot ${lv||''}" id="mdot-${t.id}"></div>
+            <div class="minfo">
+              <div class="mname">${t.nome}</div>
+              <div class="mdesc">${t.descricao}</div>
+              <div class="mtags" id="mtags-${t.id}">
+                <span class="mtag ${fxCls(t.nivel)}">${fxLbl(t.nivel)}</span>
+                ${t.gi?'<span class="mtag mt-gi">Gi</span>':''}
+                ${t.nogi?'<span class="mtag mt-nogi">No-Gi</span>':''}
+                ${lv?`<span class="mtag" style="background:var(--${lv==='visto'?'visto':lv==='treinando'?'trein':lv==='dominando'?'dom':'auto'}-bg);color:var(--${lv==='visto'?'visto':lv==='treinando'?'trein':lv==='dominando'?'dom':'auto'}-c);">${LBL[lv]}</span>`:''}
+              </div>
+            </div>
+            <div class="mexpand">${panOpen?'▲':'▼'}</div>
+          </div>
+          <div class="mlvl-panel ${panOpen?'open':''}" id="mp-${t.id}">
+            <div class="lvl-row">
+              ${LEVELS.map(l=>`<button class="lvl-btn ${lv===l?'sel-'+l:''}" onclick="setLevel(${t.id},'${l}',event)">
+                <div class="ldot" style="background:${LDOT[l]}"></div>${LBL[l]}
+              </button>`).join('')}
+              <button class="lvl-clr" onclick="clearLevel(${t.id},event)">✕</button>
+            </div>
+            <div class="vid-row" id="vid-row-${t.id}">
+              ${vid
+                ?`<div class="vid-link" style="display:flex;align-items:center;gap:6px;width:100%;"><span style="font-size:11px;color:var(--ink3);">🎬</span><a href="${vid}" target="_blank">${vid.length>40?vid.slice(0,40)+'…':vid}</a><span class="vid-link-clr" onclick="clearVid(${t.id},event)">✕</span></div>`
+                :`<input class="vid-input" id="vi-${t.id}" placeholder="Cole link do YouTube..." /><button class="vid-save" onclick="saveVid(${t.id},event)">Salvar</button>`
+              }
+            </div>
+          </div>
+        </div>`;
+      });
+    });
+    html+='</div></div>';
+  });
+  document.getElementById('lib-list').innerHTML=html;
+  updateStats();
+}
+
+function togglePanel(id){
+  if(openPanels.has(id))openPanels.delete(id);else openPanels.add(id);
+  const p=document.getElementById('mp-'+id);
+  const b=document.querySelector('#mc-'+id+' .mexpand');
+  if(p)p.classList.toggle('open',openPanels.has(id));
+  if(b)b.textContent=openPanels.has(id)?'▲':'▼';
+}
+
+function setLevel(id,lv,e){
+  e.stopPropagation();
+  S.levels[id]=lv;
+  // save to today's history
+  const today=todayStr();
+  if(!S.history[today])S.history[today]={};
+  S.history[today][id]=lv;
+  save();
+  const dot=document.getElementById('mdot-'+id);
+  if(dot)dot.className='mlvl-dot '+lv;
+  const panel=document.getElementById('mp-'+id);
+  if(panel)panel.querySelectorAll('.lvl-btn').forEach((b,i)=>{b.className='lvl-btn '+(S.levels[id]===LEVELS[i]?'sel-'+LEVELS[i]:'');});
+  refreshTags(id);
+  updateStats();updateCatBars();
+}
+
+function clearLevel(id,e){
+  e.stopPropagation();
+  delete S.levels[id];save();
+  const dot=document.getElementById('mdot-'+id);
+  if(dot)dot.className='mlvl-dot';
+  const panel=document.getElementById('mp-'+id);
+  if(panel)panel.querySelectorAll('.lvl-btn').forEach(b=>b.className='lvl-btn');
+  refreshTags(id);updateStats();updateCatBars();
+}
+
+function refreshTags(id){
+  const t=allMoves().find(m=>m.id===id);if(!t)return;
+  const lv=S.levels[id];
+  const el=document.getElementById('mtags-'+id);if(!el)return;
+  el.innerHTML=`<span class="mtag ${fxCls(t.nivel)}">${fxLbl(t.nivel)}</span>${t.gi?'<span class="mtag mt-gi">Gi</span>':''}${t.nogi?'<span class="mtag mt-nogi">No-Gi</span>':''}${lv?`<span class="mtag" style="background:var(--${lv==='visto'?'visto':lv==='treinando'?'trein':lv==='dominando'?'dom':'auto'}-bg);color:var(--${lv==='visto'?'visto':lv==='treinando'?'trein':lv==='dominando'?'dom':'auto'}-c);">${LBL[lv]}</span>`:''}`;
+}
+
+function saveVid(id,e){
+  e.stopPropagation();
+  const inp=document.getElementById('vi-'+id);
+  if(!inp||!inp.value.trim())return;
+  S.videos[id]=inp.value.trim();save();
+  const row=document.getElementById('vid-row-'+id);
+  const vid=S.videos[id];
+  if(row)row.innerHTML=`<div class="vid-link" style="display:flex;align-items:center;gap:6px;width:100%;"><span style="font-size:11px;color:var(--ink3);">🎬</span><a href="${vid}" target="_blank">${vid.length>40?vid.slice(0,40)+'…':vid}</a><span class="vid-link-clr" onclick="clearVid(${id},event)">✕</span></div>`;
+}
+
+function clearVid(id,e){
+  e.stopPropagation();
+  delete S.videos[id];save();
+  const row=document.getElementById('vid-row-'+id);
+  if(row)row.innerHTML=`<input class="vid-input" id="vi-${id}" placeholder="Cole link do YouTube..." /><button class="vid-save" onclick="saveVid(${id},event)">Salvar</button>`;
+}
+
+function toggleCat(id){
+  const body=document.getElementById('cbody-'+id);
+  const closed=body.classList.toggle('closed');
+  S.openCats[id]=!closed;save();
+}
+
+// ── SEARCH ──
+function doSearch(q){
+  searchQ=q.trim();
+  allMoves().forEach(t=>{
+    const card=document.getElementById('mc-'+t.id);
+    if(card)card.classList.toggle('hidden',!cardVisible(t));
+  });
+}
+
+// ── FILTER BAR ──
+document.getElementById('filter-bar').addEventListener('click',e=>{
+  const chip=e.target.closest('.chip');if(!chip)return;
+  if(chip.dataset.st){document.querySelectorAll('[data-st]').forEach(c=>c.classList.remove('on'));chip.classList.add('on');filterSt=chip.dataset.st;}
+  if(chip.dataset.fx){const f=chip.dataset.fx;if(filterFx.has(f)){filterFx.delete(f);chip.classList.remove('on');}else{filterFx.add(f);chip.classList.add('on');}}
+  if(chip.dataset.md){const m=chip.dataset.md;if(filterMd.has(m)){filterMd.delete(m);chip.classList.remove('on');}else{filterMd.add(m);chip.classList.add('on');}}
+  allMoves().forEach(t=>{const c=document.getElementById('mc-'+t.id);if(c)c.classList.toggle('hidden',!cardVisible(t));});
+});
+
+// ════════════════════════════════
+// REVIEW
+// ════════════════════════════════
+function renderReview(){
+  document.getElementById('rev-date').textContent=todayFmt();
+  const moves=allMoves();
+  const toRev=moves.filter(t=>S.levels[t.id]==='visto'||S.levels[t.id]==='treinando');
+  const solid=moves.filter(t=>S.levels[t.id]==='dominando');
+  const noStatus=moves.filter(t=>!S.levels[t.id]&&t.nivel==='faixa_branca').slice(0,8);
+  let html='';
+
+  html+=`<div class="rev-sec"><div class="rev-sec-title">Precisa de repetição (${toRev.length})</div>`;
+  if(toRev.length===0){html+=`<div class="empty-box"><div class="eic">🎯</div>Nenhuma técnica em Introduzido ou Em Desenvolvimento ainda.</div>`;}
+  else toRev.forEach(t=>{
+    const lv=S.levels[t.id];
+    html+=`<div class="rev-card" onclick="goToMove(${t.id})">
+      <div class="rev-dot" style="background:${LDOT[lv]}"></div>
+      <div class="rev-info"><div class="rev-name">${t.nome}</div><div class="rev-meta">${t.catEmoji} ${t.catNome}</div></div>
+      <span class="rev-badge rb-${lv}">${LBL[lv]}</span>
+    </div>`;
+  });
+  html+='</div>';
+
+  if(solid.length>0){
+    html+=`<div class="rev-sec"><div class="rev-sec-title">Sólido — manter afiado</div>`;
+    solid.slice(0,5).forEach(t=>{
+      html+=`<div class="rev-card" onclick="goToMove(${t.id})">
+        <div class="rev-dot" style="background:${LDOT['dominando']}"></div>
+        <div class="rev-info"><div class="rev-name">${t.nome}</div><div class="rev-meta">${t.catEmoji} ${t.catNome}</div></div>
+        <span class="rev-badge rb-dominando">Sólido</span>
+      </div>`;
+    });
+    html+='</div>';
+  }
+
+  if(noStatus.length>0){
+    html+=`<div class="rev-sec"><div class="rev-sec-title">Sugerido para explorar</div>`;
+    noStatus.forEach(t=>{
+      html+=`<div class="rev-card" onclick="goToMove(${t.id})">
+        <div class="rev-dot" style="border:1.5px solid var(--ink3);background:transparent;"></div>
+        <div class="rev-info"><div class="rev-name">${t.nome}</div><div class="rev-meta">${t.catEmoji} ${t.catNome}</div></div>
+      </div>`;
+    });
+    html+='</div>';
+  }
+
+  // History section
+  const histKeys=Object.keys(S.history).sort((a,b)=>b.localeCompare(a)).slice(0,5);
+  if(histKeys.length>0){
+    html+=`<div class="rev-sec"><div class="rev-sec-title">Histórico de aulas</div>`;
+    histKeys.forEach(date=>{
+      const entries=S.history[date];
+      const ids=Object.keys(entries);
+      const fmt=new Date(date+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'numeric',month:'short'});
+      html+=`<div class="hist-entry">
+        <div class="hist-date">${fmt} · ${ids.length} técnica${ids.length!==1?'s':''}</div>
+        <div class="hist-moves">
+          ${ids.map(id=>{const m=allMoves().find(t=>t.id==id);return m?`<span class="hist-tag">${m.nome}</span>`:''}).join('')}
+        </div>
+      </div>`;
+    });
+    html+='</div>';
+  }
+
+  document.getElementById('rev-list').innerHTML=html;
+}
+
+function goToMove(id){
+  goTo('library');
+  setTimeout(()=>{
+    const el=document.getElementById('mc-'+id);
+    if(el){el.scrollIntoView({behavior:'smooth',block:'center'});if(!openPanels.has(id))togglePanel(id);}
+  },150);
+}
+
+// ════════════════════════════════
+// REGISTER
+// ════════════════════════════════
+function renderRegister(){
+  const d=new Date();
+  document.getElementById('reg-date-badge').textContent=d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+  let html='';
+  C.categorias.forEach(cat=>{
+    const moves=cat.subcategorias.flatMap(s=>s.tecnicas);
+    html+=`<div class="reg-cat">
+      <div class="reg-cat-head" onclick="toggleRegCat('reg-${cat.id}')">
+        <span>${cat.emoji}</span>
+        <span class="reg-cat-name">${cat.nome}</span>
+        <span class="reg-cat-count">${moves.filter(t=>S.levels[t.id]).length}/${moves.length}</span>
+        <span style="color:var(--ink3);font-size:10px;">▾</span>
+      </div>
+      <div class="reg-moves" id="reg-${cat.id}">`;
+    moves.forEach(t=>{
+      const lv=S.levels[t.id];
+      html+=`<div class="reg-move" onclick="cycleLevel(${t.id})">
+        <div class="reg-move-dot ${lv||''}" id="rmdot-${t.id}"></div>
+        <div class="reg-move-name">${t.nome}</div>
+        <div class="reg-move-lvl" id="rmLvl-${t.id}">${lv?LBL[lv]:'—'}</div>
+      </div>`;
+    });
+    html+='</div></div>';
+  });
+  document.getElementById('reg-list').innerHTML=html;
+}
+
+function toggleRegCat(id){document.getElementById(id)?.classList.toggle('open');}
+
+function cycleLevel(id){
+  const cur=S.levels[id];
+  const idx=cur?LEVELS.indexOf(cur):-1;
+  const next=idx<LEVELS.length-1?LEVELS[idx+1]:null;
+  if(next){S.levels[id]=next;}else{delete S.levels[id];}
+  // save to history
+  const today=todayStr();
+  if(!S.history[today])S.history[today]={};
+  if(S.levels[id])S.history[today][id]=S.levels[id];
+  else delete S.history[today][id];
+  if(Object.keys(S.history[today]).length===0)delete S.history[today];
+  save();
+  const rdot=document.getElementById('rmdot-'+id);
+  const rlvl=document.getElementById('rmLvl-'+id);
+  if(rdot)rdot.className='reg-move-dot '+(S.levels[id]||'');
+  if(rlvl)rlvl.textContent=S.levels[id]?LBL[S.levels[id]]:'—';
+  const ldot=document.getElementById('mdot-'+id);
+  if(ldot)ldot.className='mlvl-dot '+(S.levels[id]||'');
+  updateStats();updateCatBars();
+}
+
+// ════════════════════════════════
+// STATS SCREEN
+// ════════════════════════════════
+function renderStats(){
+  const moves=allMoves();
+  const total=moves.length;
+  const ct={visto:0,treinando:0,dominando:0,automatico:0};
+  Object.values(S.levels).forEach(l=>{if(ct[l]!==undefined)ct[l]++;});
+  const totalDone=Object.keys(S.levels).length;
+  const pct=total?Math.round(totalDone/total*100):0;
+  const histCount=Object.keys(S.history).length;
+
+  let html=`<div style="padding:14px 0 0;">
+    <div class="big-stats">
+      <div class="big-stat"><div class="big-stat-val">${pct}%</div><div class="big-stat-lbl">do currículo com status</div></div>
+      <div class="big-stat"><div class="big-stat-val">${totalDone}</div><div class="big-stat-lbl">de ${total} técnicas</div></div>
+      <div class="big-stat"><div class="big-stat-val">${histCount}</div><div class="big-stat-lbl">aulas registradas</div></div>
+      <div class="big-stat"><div class="big-stat-val">${ct.automatico}</div><div class="big-stat-lbl">técnicas automáticas</div></div>
+    </div>`;
+
+  // Level distribution
+  html+=`<div class="sec-title">Distribuição por nível</div>
+    <div class="lvl-dist">
+      <div class="lvl-dist-cell"><div class="lvl-dist-val" style="color:var(--visto-dot)">${ct.visto}</div><div class="lvl-dist-lbl">Introduzido</div></div>
+      <div class="lvl-dist-cell"><div class="lvl-dist-val" style="color:var(--trein-dot)">${ct.treinando}</div><div class="lvl-dist-lbl">Desenvolvendo</div></div>
+      <div class="lvl-dist-cell"><div class="lvl-dist-val" style="color:var(--dom-dot)">${ct.dominando}</div><div class="lvl-dist-lbl">Sólido</div></div>
+      <div class="lvl-dist-cell"><div class="lvl-dist-val" style="color:var(--auto-dot)">${ct.automatico}</div><div class="lvl-dist-lbl">Automático</div></div>
+    </div>`;
+
+  // Per category progress
+  html+=`<div class="sec-title">Progresso por categoria</div>`;
+  C.categorias.forEach(cat=>{
+    const allT=cat.subcategorias.flatMap(s=>s.tecnicas);
+    const done=allT.filter(t=>S.levels[t.id]).length;
+    const pctCat=allT.length?Math.round(done/allT.length*100):0;
+    html+=`<div class="prog-cat-row">
+      <div class="prog-cat-name"><span>${cat.emoji} ${cat.nome}</span><span>${done}/${allT.length} · ${pctCat}%</span></div>
+      <div class="prog-bar-outer"><div class="prog-bar-inner" style="width:${pctCat}%"></div></div>
+    </div>`;
+  });
+
+  // Recent history
+  const histKeys=Object.keys(S.history).sort((a,b)=>b.localeCompare(a)).slice(0,8);
+  if(histKeys.length>0){
+    html+=`<div class="sec-title" style="margin-top:16px;">Histórico de aulas</div>`;
+    histKeys.forEach(date=>{
+      const entries=S.history[date];
+      const ids=Object.keys(entries);
+      const fmt=new Date(date+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
+      html+=`<div class="hist-entry">
+        <div class="hist-date">${fmt} · ${ids.length} técnica${ids.length!==1?'s':''}</div>
+        <div class="hist-moves">${ids.map(id=>{const m=moves.find(t=>t.id==id);return m?`<span class="hist-tag">${m.nome}</span>`:''}).join('')}</div>
+      </div>`;
+    });
+  }
+
+  html+='</div>';
+  document.getElementById('stats-content').innerHTML=html;
+}
+
+// ════════════════════════════════
+// NAV
+// ════════════════════════════════
+const PAGES=['library','review','register','stats'];
+function goTo(page){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('scr-'+page).classList.add('active');
+  document.querySelectorAll('.nav-btn')[PAGES.indexOf(page)].classList.add('on');
+  if(page==='review')renderReview();
+  if(page==='register')renderRegister();
+  if(page==='stats')renderStats();
+}
+
+// ════════════════════════════════
+// INIT
+// ════════════════════════════════
+updateBeltUI();
+renderLibrary();
+updateStats();
+</script>
+</body>
+</html>
